@@ -121,5 +121,39 @@ services:
       timeout: 1s
     image: belcebus/dockercoins:latest-webui
     networks:
-      #la red que hemos creado antes
+      #las interfaz web se conecta con redis para ver si hay docker coins.
+      - redis
+      #la red que hemos creado antes en este caso es la externa
       - webui
+  worker:
+    deploy: 
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 100M
+        reservations:
+          cpus: "0.1"
+          memory: 100M
+    healthcheck:
+      interval: 10s
+      retries: 3
+      start_period: 30s
+      #comprobamos conexion con la base de datos
+      test: netstat -nt | grep ESTABLISHED | grep -q 6379
+      timeout: 1s
+    image: belcebus/dockercoins:latest-worker
+    networks:
+      # necesita conectarse con hasher y redis y random number generator
+      - hasher
+      - redis
+      - rng
+      #la red que hemos creado antes
+      - worker
+version: '3.8'
+volumes:
+  redis: 
