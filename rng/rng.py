@@ -28,5 +28,6 @@ def rng(how_many_bytes):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    #Openshift no permite usar un puerto tan bajo, cambiamos de 80 a 8080
+    app.run(host="0.0.0.0", port=8080)
 
