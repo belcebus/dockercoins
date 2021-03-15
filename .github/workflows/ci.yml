@@ -76,10 +76,14 @@ jobs:
     - name: test
       run: |
         set -x
-        #creo imagen image
-        docker build -t belcebus/phpinfo-2:testing .
+        #construimos imágenes
+        for app in hasher rng webui worker
+          do \
+            docker build -t belcebus/dockercoins:testing-${app} ${app}
+          done
+
         docker swarm init
-        project=phpinfo-2
+        project=dockercoins
         compose=etc/swarm/manifests/${project}.yml
         #sustituyo latest x testing y despliego con compose
         sed -i /image:/s/latest/testing/ ${compose}
@@ -92,14 +96,33 @@ jobs:
         docker stack deploy -c ${compose} ${project}
         while true 
           do \
-            sleep 10
-            docker service ls | grep "${project}.*\([0-9]\)/\1" && break
+            sleep 5
+            docker service logs ${project}_webui 2>& 1 | grep 'WEBUI running on port' && break
           done
+        #testear la aplicacion Redis
         while true
           do \
-            sleep 10
-            docker service logs ${project}_${project} 2>& 1 | grep 'PHP .* Development Server .* started' && break 
-          done      
+            sleep 5
+           docker service logs ${project}_redis 2>& 1 | grep 'Ready to accept connections' && break
+          done
+        #testear la aplicacion rng
+        while true 
+          do \
+            sleep 5
+            docker service logs ${project}_rng 2>& 1 | grep 'Running on' && break
+         done
+         #testear la aplicacion hasher
+         while true 
+           do \
+             sleep 5
+             docker service logs ${project}_hasher 2>& 1 | grep 'Sinatra (v2.1.0) has taken the stage on 8080 for development' && break
+           done
+         #testear la aplicacion worker
+         while true 
+           do \
+             sleep 5
+             docker service logs ${project}_worker 2>& 1 | grep 'Coin found' && break
+           done
   kubernetes:
     runs-on: ubuntu-18.04
     steps:
