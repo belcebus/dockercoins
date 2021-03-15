@@ -34,18 +34,29 @@ jobs:
           do \
             docker network connect redis ${app}
           done
-        
         for network in hasher rng
           do \
             docker network connect ${network} worker
           done
-        #testear la aplicacion
+        #testear la aplicacion WEBUI
         while true 
           do \
-            sleep 10
+            sleep 5
             docker logs webui 2>& 1 | grep 'WEBUI running on port' && break
           done
-        for app in hasher redis rng worker
+        #testear la aplicacion Redis
+        while true
+          do \
+            sleep 5
+            docker logs redis 2>& 1 | grep 'Ready to accept connections' && break
+          done
+        #testear la aplicacion rng
+        while true 
+          do \
+            sleep 5
+            docker logs rng 2>& 1 | grep 'Running on http://0.0.0.0:8080/' && break
+         done
+        for app in hasher worker
           do \
             docker logs ${app}
           done
