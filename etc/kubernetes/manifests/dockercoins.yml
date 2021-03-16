@@ -128,7 +128,7 @@ metadata:
 spec:
   ports:
     - 
-      ports: 8080
+      port: 8080
       targetPort: 8080
   selector:
     app: hasher
@@ -140,7 +140,7 @@ metadata:
 spec:
   ports:
     - 
-      ports: 6379
+      port: 6379
       targetPort: 6370
   selector:
     app: redis
@@ -152,7 +152,7 @@ metadata:
 spec:
   ports:
     - 
-      ports: 8080
+      port: 8080
       targetPort: 8080
   selector:
     app: webui
