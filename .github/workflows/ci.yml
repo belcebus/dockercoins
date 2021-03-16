@@ -214,8 +214,5 @@ jobs:
         while true
           do 
             sleep 10
-            kubectl logs deploy/${app}
-            kubectl describe po
-            sleep 180
             kubectl logs deploy/${app} 2>& 1 | grep "${pattern}" && break 
           done
