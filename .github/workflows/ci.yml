@@ -192,11 +192,6 @@ jobs:
         while true
           do 
             sleep 10
-            kubectl describe deploy/redis
-            kubectl describe rs 
-            kubectl describe po
-            kubectl logs deploy/redis
-            sleep 180
             kubectl logs deploy/${app} 2>& 1 | grep "${pattern}" && break 
           done
         app=rng
