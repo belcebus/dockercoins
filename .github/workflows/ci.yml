@@ -131,9 +131,13 @@ jobs:
     - name: test
       run: |
         set -x
-        #creo imagen image
-        docker build -t belcebus/phpinfo-2:testing .
-        #install kubernetes en ubunto
+        project=dockercoins
+        #construimos imágenes
+        for app in hasher rng webui worker
+          do 
+            docker build -t belcebus/${project}:testing-${app} ${app}
+          done
+        #install kubernetes en ubuntu
         sudo apt-get update -y
         #sudo apt-get install -y docker.io
         #sudo systemctl enable --now docker
@@ -155,7 +159,7 @@ jobs:
         kubectl apply -f https://docs.projectcalico.org/v3.17/manifests/calico.yaml
         #comprobar q el cluster esta listo
         while true
-          do \
+          do 
             kubectl get node | grep Ready | grep -v NotReady && break
             sleep 10
           done
@@ -166,7 +170,6 @@ jobs:
         master=$( kubectl get node | grep master | awk '{ print $1 }' ) 
         kubectl taint node ${master} node-role.kubernetes.io/master:NoSchedule-
         
-        project=phpinfo-2
         compose=etc/kubernetes/manifests/${project}.yml
         #sustituyo latest x testing y despliego con compose
         sed -i /image:/s/latest/testing/ ${compose}
@@ -177,16 +180,38 @@ jobs:
         kubectl apply -f ${compose}
         #desplioegue en swarm
         #docker stack deploy -c ${compose} ${project}
-        while true 
-          do \
-            sleep 10
-            kubectl describe deploy
-            kubectl describe rs
-            kubectl describe po
-            kubectl get deploy | grep "${project}.*\([0-9]\)/\1" && break
-          done
+        app=hasher
+        pattern='Sinatra (v2.1.0) has taken the stage on 8080 for development'
         while true
-          do \
+          do 
             sleep 10
-            kubectl logs deploy/${project} 2>& 1 | grep 'PHP .* Development Server .* started' && break 
-          done      
+            kubectl logs deploy/${app} 2>& 1 | grep "${pattern}" && break 
+          done
+        app=redis
+        pattern='Ready to accept connections'
+        while true
+          do 
+            sleep 10
+            kubectl logs deploy/${app} 2>& 1 | grep "${pattern}" && break 
+          done
+        app=rng
+        pattern='Running on'
+        while true
+          do 
+            sleep 10
+            kubectl logs deploy/${app} 2>& 1 | grep "${pattern}" && break 
+          done
+        app=webui
+        pattern='WEBUI running on port'
+        while true
+          do 
+            sleep 10
+            kubectl logs deploy/${app} 2>& 1 | grep "${pattern}" && break 
+          done
+        app=worker
+        pattern='Coin found'
+        while true
+          do 
+            sleep 10
+            kubectl logs deploy/${app} 2>& 1 | grep "${pattern}" && break 
+          done
